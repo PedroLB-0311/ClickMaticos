@@ -72,6 +72,27 @@ export default function Home() {
       }
     };
 
+    const handleTouchStart = (event) => {
+      if (isRecording) {
+        const touch = event.touches[0]; 
+        setPositions((prev) => [...prev, { type: 'touchstart', x: touch.clientX, y: touch.clientY }]);
+      }
+    };
+  
+    const handleTouchEnd = (event) => {
+      if (isRecording) {
+        const touch = event.changedTouches[0]; 
+        setPositions((prev) => [...prev, { type: 'touchend', x: touch.clientX, y: touch.clientY }]);
+      }
+    };
+  
+    const handleTouchMove = (event) => {
+      if (isRecording) {
+        const touch = event.touches[0];
+        setPositions((prev) => [...prev, { type: 'touchmove', x: touch.clientX, y: touch.clientY }]);
+      }
+    };
+
     document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("mouseup", handleMouseUp);
     document.addEventListener("click", handleMouseClick);
@@ -86,6 +107,9 @@ export default function Home() {
     document.addEventListener("keypress", handleKeyPress);
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
+    document.addEventListener("touchstart", handleTouchStart);
+    document.addEventListener("touchend", handleTouchEnd);
+    document.addEventListener("touchmove", handleTouchMove);
 
     return () => {
       document.removeEventListener("mousedown", handleMouseDown);
@@ -102,6 +126,9 @@ export default function Home() {
       document.removeEventListener("keypress", handleKeyPress);
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchmove", handleTouchMove);
     };
   }, [isRecording]);
 

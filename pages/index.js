@@ -114,7 +114,7 @@ export default function Home() {
         }`}
       >
         <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-300 to-pink-400 bg-clip-text text-transparent tracking-wide drop-shadow-[0_0_10px_rgba(200,120,255,0.5)]">
-          Mouse Tracker
+        ClickMaticós
         </h1>
 
         <div className="flex flex-wrap justify-center gap-4 mb-6">

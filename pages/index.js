@@ -189,6 +189,7 @@ export default function Home() {
     const moveMouse = () => {
       if (index < lines.length) {
         const [type, ...args] = lines[index].split(",");
+        
         if (type.startsWith('mousemove') || type.startsWith('mousedown') || type.startsWith('mouseup') || type.startsWith('click')) {
           const [x, y] = args.map(Number);
           if (mousePointerRef.current) {
@@ -198,13 +199,18 @@ export default function Home() {
             const event = new MouseEvent('click', { bubbles: true, clientX: x, clientY: y });
             document.dispatchEvent(event);
           }
+        } else if (type.startsWith('touchstart') || type.startsWith('touchend') || type.startsWith('touchmove')) {
+          const [x, y] = args.map(Number);
+          const touchEvent = new TouchEvent(type, { touches: [{ clientX: x, clientY: y }] });
+          document.dispatchEvent(touchEvent);
         } else if (type.startsWith('keypress') || type.startsWith('keydown') || type.startsWith('keyup')) {
           const key = args[0];
           const event = new KeyboardEvent(type, { key });
           document.dispatchEvent(event);
         }
+
         index++;
-        setTimeout(moveMouse, 0.1); 
+        setTimeout(moveMouse, 0.1);
       }
     };
     moveMouse();

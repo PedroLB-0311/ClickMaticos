@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const [positions, setPositions] = useState([]);
+  const [keystrokes, setKeystrokes] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [selectedFileContent, setSelectedFileContent] = useState("");
   const [isFileSelected, setIsFileSelected] = useState(false);
@@ -9,17 +10,104 @@ export default function Home() {
   const mousePointerRef = useRef(null);
 
   useEffect(() => {
-    const handleMouseMove = (event) => {
+    const handleMouseDown = (event) => {
       if (isRecording) {
-        setPositions((prev) => [...prev, { x: event.clientX, y: event.clientY }]);
+        setPositions((prev) => [...prev, { type: 'mousedown', x: event.clientX, y: event.clientY }]);
+        setIsDragging(true);
       }
     };
+
+    const handleMouseUp = (event) => {
+      if (isRecording) {
+        setPositions((prev) => [...prev, { type: 'mouseup', x: event.clientX, y: event.clientY }]);
+        setIsDragging(false);
+      }
+    };
+
+    const handleMouseClick = (event) => {
+      if (isRecording) {
+        setPositions((prev) => [...prev, { type: 'click', x: event.clientX, y: event.clientY }]);
+      }
+    };
+
+    const handleDoubleClick = (event) => {
+      if (isRecording) {
+        setPositions((prev) => [...prev, { type: 'dblclick', x: event.clientX, y: event.clientY }]);
+      }
+    };
+
+    const handleContextMenu = (event) => {
+      if (isRecording) {
+        setPositions((prev) => [...prev, { type: 'contextmenu', x: event.clientX, y: event.clientY }]);
+      }
+    };
+
+    const handleMouseMove = (event) => {
+      if (isRecording) {
+        setPositions((prev) => [...prev, { type: 'mousemove', x: event.clientX, y: event.clientY }]);
+      }
+    };
+
+    const handleKeyPress = (event) => {
+      if (isRecording) {
+        setKeystrokes((prev) => [...prev, { type: 'keypress', key: event.key, timeStamp: event.timeStamp }]);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (isRecording) {
+        setKeystrokes((prev) => [...prev, { type: 'keydown', key: event.key, timeStamp: event.timeStamp }]);
+      }
+    };
+
+    const handleKeyUp = (event) => {
+      if (isRecording) {
+        setKeystrokes((prev) => [...prev, { type: 'keyup', key: event.key, timeStamp: event.timeStamp }]);
+      }
+    };
+
+    const handleWheel = (event) => {
+      if (isRecording) {
+        setPositions((prev) => [...prev, { type: 'wheel', deltaX: event.deltaX, deltaY: event.deltaY, clientX: event.clientX, clientY: event.clientY }]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("click", handleMouseClick);
+    document.addEventListener("dblclick", handleDoubleClick);
+    document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("mousemove", handleMouseMove);
-    return () => document.removeEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseenter", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseenter', x: event.clientX, y: event.clientY }]));
+    document.addEventListener("mouseleave", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseleave', x: event.clientX, y: event.clientY }]));
+    document.addEventListener("mouseover", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseover', x: event.clientX, y: event.clientY }]));
+    document.addEventListener("mouseout", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseout', x: event.clientX, y: event.clientY }]));
+    document.addEventListener("wheel", handleWheel);
+    document.addEventListener("keypress", handleKeyPress);
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("click", handleMouseClick);
+      document.removeEventListener("dblclick", handleDoubleClick);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseenter", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseenter', x: event.clientX, y: event.clientY }]));
+      document.removeEventListener("mouseleave", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseleave', x: event.clientX, y: event.clientY }]));
+      document.removeEventListener("mouseover", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseover', x: event.clientX, y: event.clientY }]));
+      document.removeEventListener("mouseout", (event) => isRecording && setPositions((prev) => [...prev, { type: 'mouseout', x: event.clientX, y: event.clientY }]));
+      document.removeEventListener("wheel", handleWheel);
+      document.removeEventListener("keypress", handleKeyPress);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keyup", handleKeyUp);
+    };
   }, [isRecording]);
 
   const startRecording = () => {
     setPositions([]);
+    setKeystrokes([]);
     setIsRecording(true);
   };
 
@@ -29,11 +117,17 @@ export default function Home() {
   };
 
   const saveToFile = () => {
-    const textData = positions.map((pos) => `${pos.x},${pos.y}`).join("\n");
+    const textData = positions
+      .map((pos) => `${pos.type},${pos.x},${pos.y}`)
+      .join("\n") + "\n" +
+      keystrokes
+      .map((key) => `${key.type},${key.key},${key.timeStamp}`)
+      .join("\n");
+
     const blob = new Blob([textData], { type: "text/plain" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "mouse_positions.txt";
+    link.download = "mouse_and_keyboard_positions.txt";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -56,7 +150,6 @@ export default function Home() {
 
   const handleDrop = (event) => {
     event.preventDefault();
-    setIsDragging(false);
     if (event.dataTransfer.files.length > 0) {
       handleFileSelect(event.dataTransfer.files[0]);
     }
@@ -65,14 +158,26 @@ export default function Home() {
   const executeFile = () => {
     const lines = selectedFileContent.split("\n");
     let index = 0;
+
     const moveMouse = () => {
       if (index < lines.length) {
-        const [x, y] = lines[index].split(",").map(Number);
-        if (mousePointerRef.current) {
-          mousePointerRef.current.style.transform = `translate(${x}px, ${y}px)`;
+        const [type, ...args] = lines[index].split(",");
+        if (type.startsWith('mousemove') || type.startsWith('mousedown') || type.startsWith('mouseup') || type.startsWith('click')) {
+          const [x, y] = args.map(Number);
+          if (mousePointerRef.current) {
+            mousePointerRef.current.style.transform = `translate(${x}px, ${y}px)`;
+          }
+          if (type === 'click') {
+            const event = new MouseEvent('click', { bubbles: true, clientX: x, clientY: y });
+            document.dispatchEvent(event);
+          }
+        } else if (type.startsWith('keypress') || type.startsWith('keydown') || type.startsWith('keyup')) {
+          const key = args[0];
+          const event = new KeyboardEvent(type, { key });
+          document.dispatchEvent(event);
         }
         index++;
-        setTimeout(moveMouse, 100);
+        setTimeout(moveMouse, 0.1); 
       }
     };
     moveMouse();
